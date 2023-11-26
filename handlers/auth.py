@@ -16,13 +16,10 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     user_id = message.from_user.id
 
-    if is_in_waiting_list(user_id):
-        await message.answer(text_messages.WAITING_FOR_ADDING)
-        return
-
     if is_registered_teacher(user_id):
         await state.set_state(TeacherActions.choosing_action)
         await message.answer(text_messages.CHOOSE_ACTION, reply_markup=get_assignment_student_kb())
+    
     elif is_registered_student(user_id):
         latest_assignment = get_latest_assignment_for_student(user_id)
         if latest_assignment:
@@ -33,6 +30,7 @@ async def cmd_start(message: Message, state: FSMContext):
             await message.answer(text_messages.ENTER_ANSWER)
         else:
             await message.answer(text_messages.NO_ASSIGNMENTS)
+    
     else:
         add_to_waiting_list(user_id)
         await message.answer(text_messages.ADDED_TO_WAITING_LIST)
