@@ -24,6 +24,7 @@ COMMAND_FOR_TEACHERS_ONLY = "Эта команда доступна только
 ENTER_REAL_NAME = "Как назвать ученика?"
 INCORRECT_STUDENT_ID = "Пожалуйста, введите корректный ID ученика."
 STUDENT_ADDED = "Ученик с ID {} и именем '{}' добавлен."
+STUDENT_NOTIFICATION_ADDED = "Поздравляю!\nВам открыт доступ к заданиям!"
 
 # Сообщения для команды "добавить задание"
 SEND_ASSIGNMENT_FILE = "Отправьте файл с заданием."

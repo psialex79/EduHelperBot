@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import Message, ReplyKeyboardRemove, ContentType
 from aiogram.fsm.context import FSMContext
 
@@ -33,13 +33,14 @@ async def process_student_id(message: Message, state: FSMContext):
         await message.answer(text_messages.INCORRECT_STUDENT_ID)
 
 @router.message(AddStudentInfoState.waiting_for_real_name)
-async def process_real_name(message: Message, state: FSMContext):
+async def process_real_name(message: Message, state: FSMContext, bot: Bot):
     real_name = message.text
     user_data = await state.get_data()
     student_id = user_data['student_id']
     teacher_id = user_data['teacher_id']
 
     add_student(student_id, real_name, teacher_id)
+    await bot.send_message(student_id, text_messages.STUDENT_NOTIFICATION_ADDED.format(real_name))
     await message.answer(text_messages.STUDENT_ADDED.format(student_id, real_name))
     await state.set_state(TeacherActions.choosing_action)
 
