@@ -16,6 +16,10 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     user_id = message.from_user.id
 
+    if is_in_waiting_list(user_id):
+        await message.answer(text_messages.WAITING_FOR_ADDING)
+        return
+
     if is_registered_teacher(user_id):
         await state.set_state(TeacherActions.choosing_action)
         await message.answer(text_messages.CHOOSE_ACTION, reply_markup=get_assignment_student_kb())
