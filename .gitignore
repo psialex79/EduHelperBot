@@ -1,4 +1,4 @@
 .env
 __pycache__/
 *.pyc
-db_handlers/db_connection.py
+db_connection.py
