@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 db_handlers/db_connection.py
+config_reader.py
