@@ -18,3 +18,7 @@ class AddAssignmentState(StatesGroup):
 
 class StudentActions(StatesGroup):
     waiting_for_answer = State()
+
+class StudentKeyboardActions(StatesGroup):
+    waiting_for_answer_input = State()
+    waiting_for_tip_request = State()
