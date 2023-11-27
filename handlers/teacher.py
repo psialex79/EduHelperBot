@@ -75,15 +75,13 @@ async def process_right_answer(message: Message, state: FSMContext, bot: Bot):
     teacher_id = user_data['teacher_id']
     is_photo = user_data['is_photo']
 
-    add_assignment(teacher_id, file_id, right_answer, is_photo)
+    add_assignment(teacher_id, file_id, right_answer, is_photo, bot)
     await message.answer(text_messages.CORRECT_ANSWER_SAVED)
 
-    # Получение списка учеников
     student_ids = get_students_of_teacher(teacher_id)
 
-    # Асинхронная отправка сообщения каждому ученику
     for student_id in student_ids:
-        await bot.send_message(student_id, "Новое задание добавлено!")
+        await bot.send_message(student_id, text_messages.NEW_ASSIGNMENT_NOTIFICATION)
 
     await state.clear()
 
