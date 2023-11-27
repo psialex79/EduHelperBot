@@ -11,7 +11,7 @@ def get_latest_assignment_for_student(student_id):
         )
         return latest_assignment
     return None
-#student
+
 def get_right_answer_for_student(student_id):
     db = get_db()
     student_info = db.students.find_one({"kid": student_id})
