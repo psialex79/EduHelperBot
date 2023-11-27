@@ -3,7 +3,7 @@ from aiogram.types import Message, ReplyKeyboardRemove, ContentType
 from aiogram.fsm.context import FSMContext
 
 from db_handlers.auth_handlers import is_registered_teacher, remove_from_waiting_list, is_in_waiting_list
-from db_handlers.teacher_handlers import add_student, add_assignment
+from db_handlers.teacher_handlers import add_student, add_assignment, get_students_of_teacher
 from states import AddStudentState, AddStudentInfoState, TeacherActions, AddAssignmentState
 import text_messages
 
@@ -68,7 +68,7 @@ async def process_assignment_file(message: Message, state: FSMContext):
     await message.answer(text_messages.ASSIGNMENT_UPLOADED)
 
 @router.message(AddAssignmentState.waiting_for_right_answer)
-async def process_right_answer(message: Message, state: FSMContext):
+async def process_right_answer(message: Message, state: FSMContext, bot: Bot):
     right_answer = message.text
     user_data = await state.get_data()
     file_id = user_data['file_id']
@@ -77,4 +77,13 @@ async def process_right_answer(message: Message, state: FSMContext):
 
     add_assignment(teacher_id, file_id, right_answer, is_photo)
     await message.answer(text_messages.CORRECT_ANSWER_SAVED)
+
+    # Получение списка учеников
+    student_ids = get_students_of_teacher(teacher_id)
+
+    # Асинхронная отправка сообщения каждому ученику
+    for student_id in student_ids:
+        await bot.send_message(student_id, "Новое задание добавлено!")
+
     await state.clear()
+
