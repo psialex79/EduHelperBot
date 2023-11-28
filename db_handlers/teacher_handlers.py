@@ -5,9 +5,9 @@ def add_student(kid, comment, teacher_id):
     db = get_db()
     db.students.insert_one({"kid": kid, "comment": comment, "teacher_id": teacher_id})
 
-def add_assignment(teacher_id, file_id, right_answer, is_photo, bot):
+def add_assignment(teacher_id, file_id, right_answer, hint, is_photo, bot):
     db = get_db()
-    assignment = Assignment(teacher_id, file_id, right_answer, is_photo)
+    assignment = Assignment(teacher_id, file_id, right_answer, hint, is_photo)
     db.assignments.insert_one(assignment.__dict__)
 
     student_ids = get_students_of_teacher(teacher_id)

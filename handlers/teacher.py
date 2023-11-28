@@ -1,5 +1,5 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, ReplyKeyboardRemove, ContentType
+from aiogram.types import Message, ReplyKeyboardRemove, ContentType, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from db_handlers.auth_handlers import is_registered_teacher, remove_from_waiting_list, is_in_waiting_list
@@ -9,27 +9,30 @@ import text_messages
 
 router = Router()
 
-@router.message(F.text.lower() == "добавить ученика")
-async def cmd_add_student(message: Message, state: FSMContext):
-    if is_registered_teacher(message.from_user.id):
+@router.callback_query(F.data == "adding_student")
+async def cmd_add_student(callback: CallbackQuery, state: FSMContext):
+    if is_registered_teacher(callback.from_user.id):
+        await callback.answer(text_messages.ENTER_STUDENT_ID)
         await state.set_state(AddStudentState.waiting_for_student_id)
-        await message.answer(text_messages.ENTER_STUDENT_ID)
     else:
-        await message.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
+        await callback.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
 
 @router.message(AddStudentState.waiting_for_student_id)
 async def process_student_id(message: Message, state: FSMContext):
-    try:
-        student_id = int(message.text)
-        teacher_id = message.from_user.id
+    if message.text.lower() == "отмена":
+        await state.clear()
+        await message.answer(text_messages.STUDENT_ADDING_CANCEL)
+        return
 
-        if is_in_waiting_list(student_id):
-            remove_from_waiting_list(student_id)
+    student_id = int(message.text)
+    teacher_id = message.from_user.id
 
+    if is_in_waiting_list(student_id):
+        remove_from_waiting_list(student_id)
         await state.set_state(AddStudentInfoState.waiting_for_real_name)
         await state.update_data(student_id=student_id, teacher_id=teacher_id)
         await message.answer(text_messages.ENTER_REAL_NAME, reply_markup=ReplyKeyboardRemove())
-    except ValueError:
+    else:
         await message.answer(text_messages.INCORRECT_STUDENT_ID)
 
 @router.message(AddStudentInfoState.waiting_for_real_name)
@@ -68,20 +71,33 @@ async def process_assignment_file(message: Message, state: FSMContext):
     await message.answer(text_messages.ASSIGNMENT_UPLOADED)
 
 @router.message(AddAssignmentState.waiting_for_right_answer)
-async def process_right_answer(message: Message, state: FSMContext, bot: Bot):
+async def process_right_answer(message: Message, state: FSMContext):
     right_answer = message.text
+    await state.update_data(right_answer=right_answer)
+    await state.set_state(AddAssignmentState.waiting_for_hint)
+    await message.answer("Загрузите подсказку к заданию (или отправьте текст подсказки). Отправьте /skip, если подсказка не требуется.")
+
+@router.message(AddAssignmentState.waiting_for_hint)
+async def process_hint(message: Message, state: FSMContext, bot: Bot):
+    hint = None
+    if message.text != '/skip':
+        if message.content_type == ContentType.TEXT:
+            hint = message.text
+        elif message.content_type in [ContentType.PHOTO, ContentType.DOCUMENT]:
+            hint = message.photo[-1].file_id if message.content_type == ContentType.PHOTO else message.document.file_id
+
     user_data = await state.get_data()
     file_id = user_data['file_id']
     teacher_id = user_data['teacher_id']
     is_photo = user_data['is_photo']
-
-    add_assignment(teacher_id, file_id, right_answer, is_photo, bot)
+    right_answer = user_data['right_answer']
+    add_assignment(teacher_id, file_id, right_answer, hint, is_photo, bot)
     await message.answer(text_messages.CORRECT_ANSWER_SAVED)
-
+    
     student_ids = get_students_of_teacher(teacher_id)
-
     for student_id in student_ids:
         await bot.send_message(student_id, text_messages.NEW_ASSIGNMENT_NOTIFICATION)
-
+   
     await state.clear()
+
 

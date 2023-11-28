@@ -4,10 +4,9 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from db_handlers.auth_handlers import is_registered_teacher, is_registered_student, add_to_waiting_list, is_in_waiting_list
-from db_handlers.student_handlers import get_latest_assignment_for_student
 from states import TeacherActions, StudentActions
-from keyboards.teacher_keyboard import get_assignment_student_kb
-from keyboards.student_keyboard import get_answer_tip_kb, get_assignment_kb
+from keyboards.teacher_keyboard import get_assignment_student_inline_kb
+from keyboards.student_keyboard import get_assignment_kb
 import text_messages
 
 router = Router()
@@ -22,11 +21,10 @@ async def cmd_start(message: Message, state: FSMContext):
         return
 
     if is_registered_teacher(user_id):
-        await state.set_state(TeacherActions.choosing_action)
-        await message.answer(text_messages.CHOOSE_ACTION, reply_markup=get_assignment_student_kb())
+        await message.answer(text_messages.CHOOSE_ACTION, reply_markup=get_assignment_student_inline_kb())
     
     elif is_registered_student(user_id):
-        await state.set_state(StudentActions.waiting_for_answer)  # Установка состояния для ученика
+        await state.set_state(StudentActions.waiting_for_answer)
         await message.answer(text_messages.PRESS_TO_GET_ASSIGNMENT, reply_markup=get_assignment_kb())
     
     else:

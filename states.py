@@ -3,6 +3,7 @@ from aiogram.filters.state import State, StatesGroup
 class AddTeacherState(StatesGroup):
     waiting_for_teacher_id = State()
 
+
 class TeacherActions(StatesGroup):
     choosing_action = State()
 
@@ -15,6 +16,8 @@ class AddStudentInfoState(StatesGroup):
 class AddAssignmentState(StatesGroup):
     waiting_for_file = State()
     waiting_for_right_answer = State()
+    waiting_for_hint = State() 
+
 
 class StudentActions(StatesGroup):
     waiting_for_answer = State()
