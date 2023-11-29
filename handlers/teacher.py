@@ -24,7 +24,11 @@ async def process_student_id(message: Message, state: FSMContext):
         await message.answer(text_messages.STUDENT_ADDING_CANCEL)
         return
 
-    student_id = int(message.text)
+    try:
+        student_id = int(message.text)
+    except ValueError:
+        await message.answer(text_messages.INCORRECT_STUDENT_ID)
+        return 
     teacher_id = message.from_user.id
 
     if is_in_waiting_list(student_id):

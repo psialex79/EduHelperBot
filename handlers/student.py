@@ -1,15 +1,15 @@
 import re
-from aiogram import Router, F
-from aiogram.types import Message
+from aiogram import Router, F, Bot
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from db_handlers.student_handlers import get_right_answer_for_student, get_latest_assignment_for_student
-from states import StudentKeyboardActions
-from keyboards.student_keyboard import get_answer_tip_kb
+from states import StudentActions
+from keyboards.student_keyboard import get_answer_tip_kb, get_hint_inline_kb
 import text_messages
 
 router = Router()
 
-@router.message(StudentKeyboardActions.waiting_for_answer_input)
+@router.message(StudentActions.waiting_for_answer)
 async def process_input_answer(message: Message, state: FSMContext):
     if re.match(r'/', message.text):
         await state.clear()
@@ -24,16 +24,14 @@ async def process_input_answer(message: Message, state: FSMContext):
             await message.answer(text_messages.CORRECT_ANSWER)
             await state.clear()
         else:
-            await message.answer(text_messages.INCORRECT_ANSWER)
-            # Отправляем клавиатуру с выбором действий вместо установки состояния
-            await message.answer("Выберите следующее действие:", reply_markup=get_answer_tip_kb())
+            await message.answer(text_messages.INCORRECT_ANSWER, reply_markup=get_hint_inline_kb())
     else:
         await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
         await state.clear()
 
-@router.message(F.text.lower() == "к задаче")
-async def cmd_get_assignment(message: Message, state: FSMContext):
-    user_id = message.from_user.id
+@router.callback_query(F.data == "getting_task")
+async def cmd_get_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
     latest_assignment = get_latest_assignment_for_student(user_id)
     if latest_assignment:
         file_id = latest_assignment['file_id']
@@ -41,22 +39,17 @@ async def cmd_get_assignment(message: Message, state: FSMContext):
         caption = text_messages.LATEST_ASSIGNMENT_PHOTO_CAPTION if is_photo else text_messages.LATEST_ASSIGNMENT_DOC_CAPTION
 
         if is_photo:
-            await message.answer_photo(photo=file_id, caption=caption)
+            await callback.bot.send_photo(chat_id=callback.from_user.id, photo=file_id, caption=caption)
         else:
-            await message.answer_document(document=file_id, caption=caption)
+            await callback.bot.send_document(chat_id=callback.from_user.id, document=file_id, caption=caption)
 
-        await message.answer(text_messages.ENTER_ANSWER, reply_markup=get_answer_tip_kb())
+        await callback.answer(text_messages.ENTER_ANSWER, reply_markup=get_answer_tip_kb())
     else:
-        await message.answer(text_messages.NO_ASSIGNMENTS)
+        await callback.answer(text_messages.NO_ASSIGNMENTS)
 
-@router.message(F.text.lower() == "ввести ответ")
-async def cmd_input_answer(message: Message, state: FSMContext):
-    await state.set_state(StudentKeyboardActions.waiting_for_answer_input)
-    await message.answer("Введите ваш ответ:")
-
-@router.message(F.text.lower() == "подсказка")
-async def cmd_request_tip(message: Message, state: FSMContext):
-    user_id = message.from_user.id
+@router.callback_query(F.data == "getting_hint")
+async def cmd_request_tip(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
     latest_assignment = get_latest_assignment_for_student(user_id)
 
     if latest_assignment and latest_assignment.get('hint'):
@@ -67,14 +60,14 @@ async def cmd_request_tip(message: Message, state: FSMContext):
                 file_id = hint.split(':')[1]
                 # Определите, является ли файл фотографией или документом, и отправьте его
                 # Пример отправки фотографии:
-                await message.answer_photo(photo=file_id)
+                await callback.bot.send_photo(chat_id=callback.from_user.id, photo=file_id)
                 # Для документа используйте:
                 # await message.answer_document(document=file_id)
             else:
                 # Отправляем текстовую подсказку
-                await message.answer(f"Подсказка для задания: {hint}")
+                await callback.bot.send_message(chat_id=callback.from_user.id, text=f"Подсказка для задания: {hint}")
         else:
             # Обработка других типов подсказок, если они возможны
             pass
     else:
-        await message.answer("Для данного задания подсказка отсутствует.")
+        await callback.bot.send_message(chat_id=callback.from_user.id, text="Для данного задания подсказка отсутствует.")
