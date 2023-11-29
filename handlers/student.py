@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from db_handlers.student_handlers import get_right_answer_for_student, get_latest_assignment_for_student
 from states import StudentActions
-from keyboards.student_keyboard import get_answer_tip_kb, get_hint_inline_kb
+from keyboards.student_keyboard import get_hint_inline_kb
 import text_messages
 
 router = Router()
@@ -24,10 +24,17 @@ async def process_input_answer(message: Message, state: FSMContext):
             await message.answer(text_messages.CORRECT_ANSWER)
             await state.clear()
         else:
-            await message.answer(text_messages.INCORRECT_ANSWER, reply_markup=get_hint_inline_kb())
+            data = await state.get_data()
+            hint_shown = data.get('hint_shown', False)
+
+            if not hint_shown:
+                await message.answer(text_messages.INCORRECT_ANSWER, reply_markup=get_hint_inline_kb())
+                await state.update_data(hint_shown=True)
+            else:
+                await message.answer(text_messages.INCORRECT_ANSWER)
     else:
         await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-        await state.clear()
+
 
 @router.callback_query(F.data == "getting_task")
 async def cmd_get_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
@@ -43,7 +50,7 @@ async def cmd_get_assignment(callback: CallbackQuery, state: FSMContext, bot: Bo
         else:
             await callback.bot.send_document(chat_id=callback.from_user.id, document=file_id, caption=caption)
 
-        await callback.answer(text_messages.ENTER_ANSWER, reply_markup=get_answer_tip_kb())
+        await callback.answer(text_messages.ENTER_ANSWER)
     else:
         await callback.answer(text_messages.NO_ASSIGNMENTS)
 
@@ -54,20 +61,15 @@ async def cmd_request_tip(callback: CallbackQuery, state: FSMContext, bot: Bot):
 
     if latest_assignment and latest_assignment.get('hint'):
         hint = latest_assignment['hint']
+        is_photo = latest_assignment.get('is_photo', False)
 
         if isinstance(hint, str):
-            if hint.startswith('file_id:'):  # Проверяем, является ли подсказка файлом
-                file_id = hint.split(':')[1]
-                # Определите, является ли файл фотографией или документом, и отправьте его
-                # Пример отправки фотографии:
-                await callback.bot.send_photo(chat_id=callback.from_user.id, photo=file_id)
-                # Для документа используйте:
-                # await message.answer_document(document=file_id)
+            if is_photo:
+                await callback.bot.send_photo(chat_id=callback.from_user.id, photo=hint)
             else:
-                # Отправляем текстовую подсказку
-                await callback.bot.send_message(chat_id=callback.from_user.id, text=f"Подсказка для задания: {hint}")
+                await callback.bot.send_document(chat_id=callback.from_user.id, document=hint)
         else:
-            # Обработка других типов подсказок, если они возможны
-            pass
+            await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.GETTING_HINT.format(hint))
     else:
-        await callback.bot.send_message(chat_id=callback.from_user.id, text="Для данного задания подсказка отсутствует.")
+        await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.NO_HINT_FOR_TASK)
+

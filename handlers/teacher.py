@@ -52,13 +52,14 @@ async def process_real_name(message: Message, state: FSMContext, bot: Bot):
     await state.set_state(TeacherActions.choosing_action)
 
 
-@router.message(F.text.lower() == "добавить задание")
-async def cmd_add_assignment(message: Message, state: FSMContext):
-    if is_registered_teacher(message.from_user.id):
+@router.callback_query(F.data == "adding_task")
+async def cmd_add_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
+    if is_registered_teacher(user_id):
         await state.set_state(AddAssignmentState.waiting_for_file)
-        await message.answer(text_messages.SEND_ASSIGNMENT_FILE)
+        await bot.send_message(user_id, text=text_messages.SEND_ASSIGNMENT_FILE)
     else:
-        await message.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
+        await bot.send_message(user_id, text=text_messages.COMMAND_FOR_TEACHERS_ONLY)
 
 @router.message(AddAssignmentState.waiting_for_file)
 async def process_assignment_file(message: Message, state: FSMContext):
@@ -79,7 +80,7 @@ async def process_right_answer(message: Message, state: FSMContext):
     right_answer = message.text
     await state.update_data(right_answer=right_answer)
     await state.set_state(AddAssignmentState.waiting_for_hint)
-    await message.answer("Загрузите подсказку к заданию (или отправьте текст подсказки). Отправьте /skip, если подсказка не требуется.")
+    await message.answer(text_messages.LOAD_HINT_OR_SKIP)
 
 @router.message(AddAssignmentState.waiting_for_hint)
 async def process_hint(message: Message, state: FSMContext, bot: Bot):
