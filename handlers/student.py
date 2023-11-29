@@ -50,9 +50,9 @@ async def cmd_get_assignment(callback: CallbackQuery, state: FSMContext, bot: Bo
         else:
             await callback.bot.send_document(chat_id=callback.from_user.id, document=file_id, caption=caption)
 
-        await callback.answer(text_messages.ENTER_ANSWER)
+        await callback.message.answer(text_messages.ENTER_ANSWER)
     else:
-        await callback.answer(text_messages.NO_ASSIGNMENTS)
+        await callback.message.answer(text_messages.NO_ASSIGNMENTS)
 
 @router.callback_query(F.data == "getting_hint")
 async def cmd_request_tip(callback: CallbackQuery, state: FSMContext, bot: Bot):

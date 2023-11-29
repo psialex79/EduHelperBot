@@ -12,10 +12,10 @@ router = Router()
 @router.callback_query(F.data == "adding_student")
 async def cmd_add_student(callback: CallbackQuery, state: FSMContext):
     if is_registered_teacher(callback.from_user.id):
-        await callback.answer(text_messages.ENTER_STUDENT_ID)
+        await callback.message.answer(text_messages.ENTER_STUDENT_ID)
         await state.set_state(AddStudentState.waiting_for_student_id)
     else:
-        await callback.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
+        await callback.message.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
 
 @router.message(AddStudentState.waiting_for_student_id)
 async def process_student_id(message: Message, state: FSMContext):
@@ -41,6 +41,11 @@ async def process_student_id(message: Message, state: FSMContext):
 
 @router.message(AddStudentInfoState.waiting_for_real_name)
 async def process_real_name(message: Message, state: FSMContext, bot: Bot):
+    if message.text.lower() == "отмена":
+        await state.clear()
+        await message.answer(text_messages.STUDENT_ADDING_CANCEL)
+        return
+    
     real_name = message.text
     user_data = await state.get_data()
     student_id = user_data['student_id']
