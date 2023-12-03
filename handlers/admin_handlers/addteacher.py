@@ -15,7 +15,7 @@ router = Router()
 @router.message(Command("addteacher"))
 async def cmd_add_teacher(message: Message, state: FSMContext):
     if message.from_user.id == ADMIN_USER_ID:
-        await state.set_state(AddTeacherState.waiting_for_teacher_id)
+        await state.set_state(admin_states.AddTeacherState.waiting_for_teacher_id)
         await message.answer(text_messages.ENTER_TEACHER_ID)
     else:
         await message.answer(text_messages.NO_ACCESS)

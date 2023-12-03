@@ -13,14 +13,6 @@ async def cmd_request_tip(callback: CallbackQuery, state: FSMContext, bot: Bot):
 
     if latest_assignment and latest_assignment.get('hint'):
         hint = latest_assignment['hint']
-        is_photo = latest_assignment.get('is_photo', False)
-
-        if isinstance(hint, str):
-            if is_photo:
-                await callback.bot.send_photo(chat_id=callback.from_user.id, photo=hint)
-            else:
-                await callback.bot.send_document(chat_id=callback.from_user.id, document=hint)
-        else:
-            await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.GETTING_HINT.format(hint))
+        await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.GETTING_HINT.format(hint))
     else:
         await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.NO_HINT_FOR_TASK)

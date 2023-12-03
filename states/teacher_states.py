@@ -13,3 +13,5 @@ class AddAssignmentState(StatesGroup):
     waiting_for_file = State()
     waiting_for_right_answer = State()
     waiting_for_hint = State() 
+    waiting_for_solution_file = State()
+

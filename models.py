@@ -9,12 +9,13 @@ class Teacher:
         self.teacher = teacher
 
 class Assignment:
-    def __init__(self, teacher_id, file_id, right_answer, hint, is_photo):
+    def __init__(self, teacher_id, file_id, right_answer, hint, solution_id, is_photo):
         self.teacher_id = teacher_id
         self.file_id = file_id
         self.right_answer = right_answer
-        self.hint = hint  
-        self.is_photo = is_photo
+        self.hint = hint
+        self.solution_id = solution_id
+        self.is_photo = is_photo 
 
 class WaitingList:
     def __init__(self, user_id):

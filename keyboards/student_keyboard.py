@@ -28,3 +28,11 @@ def check_or_hint_inline_kb() -> InlineKeyboardMarkup:
         callback_data="getting_hint"
     ))
     return ikb.as_markup()
+
+def get_solution_inline_kb() -> InlineKeyboardMarkup:
+    ikb = InlineKeyboardBuilder()
+    ikb.add(InlineKeyboardButton(
+        text="Показать решение", 
+        callback_data="show_solution"
+    ))
+    return ikb.as_markup()

@@ -20,15 +20,10 @@ async def cmd_add_assignment(callback: CallbackQuery, state: FSMContext, bot: Bo
 
 @router.message(teacher_states.AddAssignmentState.waiting_for_file)
 async def process_assignment_file(message: Message, state: FSMContext):
-    is_photo = False
-    if message.content_type == ContentType.PHOTO:
-        file_id = message.photo[-1].file_id
-        is_photo = True
-    elif message.content_type == ContentType.DOCUMENT:
-        file_id = message.document.file_id
-
     teacher_id = message.from_user.id
-    await state.update_data(file_id=file_id, teacher_id=teacher_id, is_photo=is_photo)
+    file_id = message.document.file_id if message.document else message.photo[-1].file_id
+    is_photo = message.content_type == ContentType.PHOTO
+    await state.update_data(teacher_id=teacher_id, file_id=file_id, is_photo=is_photo)
     await state.set_state(teacher_states.AddAssignmentState.waiting_for_right_answer)
     await message.answer(text_messages.ASSIGNMENT_UPLOADED)
 
@@ -45,19 +40,29 @@ async def process_hint(message: Message, state: FSMContext, bot: Bot):
     if message.text != '/skip':
         if message.content_type == ContentType.TEXT:
             hint = message.text
-        elif message.content_type in [ContentType.PHOTO, ContentType.DOCUMENT]:
-            hint = message.photo[-1].file_id if message.content_type == ContentType.PHOTO else message.document.file_id
+        else:
+            await message.answer(text_messages.HINT_MUST_BE_TEXT)
+            return
 
-    user_data = await state.get_data()
-    file_id = user_data['file_id']
-    teacher_id = user_data['teacher_id']
-    is_photo = user_data['is_photo']
-    right_answer = user_data['right_answer']
-    add_assignment(teacher_id, file_id, right_answer, hint, is_photo, bot)
-    await message.answer(text_messages.CORRECT_ANSWER_SAVED)
-    
-    student_ids = get_students_of_teacher(teacher_id)
-    for student_id in student_ids:
-        await bot.send_message(student_id, text_messages.NEW_ASSIGNMENT_NOTIFICATION)
-   
-    await state.clear()
+    await state.update_data(hint=hint)
+    await state.set_state(teacher_states.AddAssignmentState.waiting_for_solution_file)
+    await message.answer(text_messages.SEND_SOLUTION_FILE)
+
+@router.message(teacher_states.AddAssignmentState.waiting_for_solution_file)
+async def process_solution_file(message: Message, state: FSMContext, bot: Bot):
+    if message.content_type in [ContentType.PHOTO, ContentType.DOCUMENT]:
+        solution_file_id = message.document.file_id if message.document else message.photo[-1].file_id
+        await state.update_data(solution_id=solution_file_id)
+
+        user_data = await state.get_data()
+
+        student_ids = add_assignment(user_data['teacher_id'], user_data['file_id'], user_data['right_answer'], user_data.get('hint'), user_data['solution_id'], user_data['is_photo'])
+
+        await message.answer(text_messages.CORRECT_ANSWER_SAVED)
+        
+        for student_id in student_ids:
+            await bot.send_message(student_id, text_messages.NEW_ASSIGNMENT_NOTIFICATION)
+       
+        await state.clear()
+    else:
+        await message.answer(text_messages.INVALID_SOLUTION_FILE)
