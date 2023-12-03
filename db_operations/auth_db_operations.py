@@ -1,4 +1,4 @@
-from db_handlers.db_connection import get_db
+from db_operations.db_connection import get_db
 
 def is_registered_student(user_id):
     db = get_db()

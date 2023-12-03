@@ -1,4 +1,4 @@
-from db_handlers.db_connection import get_db
+from db_operations.db_connection import get_db
 
 def get_latest_assignment_for_student(student_id):
     db = get_db()

@@ -3,8 +3,8 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from db_handlers.auth_handlers import is_registered_teacher, is_registered_student, add_to_waiting_list, is_in_waiting_list
-from states import TeacherActions, StudentActions
+from db_operations.auth_db_operations import is_registered_teacher, is_registered_student, add_to_waiting_list, is_in_waiting_list
+from states import student_states
 from keyboards.teacher_keyboard import get_assignment_student_inline_kb
 from keyboards.student_keyboard import get_assignment_inline_kb
 import text_messages
@@ -24,7 +24,7 @@ async def cmd_start(message: Message, state: FSMContext):
         await message.answer(text_messages.CHOOSE_ACTION, reply_markup=get_assignment_student_inline_kb())
     
     elif is_registered_student(user_id):
-        await state.set_state(StudentActions.waiting_for_answer)
+        await state.set_state(student_states.StudentActions.waiting_for_answer)
         await message.answer(text_messages.PRESS_TO_GET_ASSIGNMENT, reply_markup=get_assignment_inline_kb())
     
     else:

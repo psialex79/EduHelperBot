@@ -3,9 +3,9 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from db_handlers.admin_handlers import add_teacher
-from db_handlers.auth_handlers import remove_from_waiting_list
-from states import AddTeacherState
+from db_operations.admin_db_operations import add_teacher
+from db_operations.auth_db_operations import remove_from_waiting_list
+from states import admin_states
 import text_messages
 
 ADMIN_USER_ID = 135002839
@@ -20,7 +20,7 @@ async def cmd_add_teacher(message: Message, state: FSMContext):
     else:
         await message.answer(text_messages.NO_ACCESS)
 
-@router.message(AddTeacherState.waiting_for_teacher_id)
+@router.message(admin_states.AddTeacherState.waiting_for_teacher_id)
 async def process_teacher_id(message: Message, state: FSMContext):
     try:
         teacher_id = int(message.text)

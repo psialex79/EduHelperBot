@@ -1,6 +1,6 @@
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from db_handlers.auth_handlers import is_in_waiting_list
+from db_operations.auth_db_operations import is_in_waiting_list
 import text_messages
 
 class CheckWaitingListMiddleware(BaseMiddleware):

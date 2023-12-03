@@ -1,4 +1,4 @@
-from db_handlers.db_connection import get_db
+from db_operations.db_connection import get_db
 from models import Assignment
 
 def add_student(kid, comment, teacher_id):
