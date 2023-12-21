@@ -1,3 +1,5 @@
+"""Модуль для обработки команды добавления учителя."""
+
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -8,13 +10,14 @@ from db_operations.auth_db_operations import remove_from_waiting_list
 from states import admin_states
 import text_messages
 
-ADMIN_USER_ID = 135002839
+from config_reader import config
 
 router = Router()
 
 @router.message(Command("addteacher"))
 async def cmd_add_teacher(message: Message, state: FSMContext):
-    if message.from_user.id == ADMIN_USER_ID:
+    """Обрабатывает команду /addteacher для добавления учителя."""
+    if message.from_user.id == config.bot_owner.get_secret_value():
         await state.set_state(admin_states.AddTeacherState.waiting_for_teacher_id)
         await message.answer(text_messages.ENTER_TEACHER_ID)
     else:
@@ -22,11 +25,12 @@ async def cmd_add_teacher(message: Message, state: FSMContext):
 
 @router.message(admin_states.AddTeacherState.waiting_for_teacher_id)
 async def process_teacher_id(message: Message, state: FSMContext):
+    """Обрабатывает ввод ID учителя и добавляет его в базу данных."""
     try:
         teacher_id = int(message.text)
-        add_teacher(teacher_id)  
-        remove_from_waiting_list(teacher_id)  
+        add_teacher(teacher_id)
+        remove_from_waiting_list(teacher_id)
         await message.answer(text_messages.TEACHER_ADDED.format(teacher_id))
-        await state.clear() 
+        await state.clear()
     except ValueError:
         await message.answer(text_messages.INVALID_TEACHER_ID)

@@ -1,32 +1,65 @@
+"""Модуль для обработки заданий учеников."""
+
+import logging
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from db_operations.student_db_operations import get_latest_assignment_for_student
 import text_messages
-from aiogram.exceptions import TelegramAPIError
-from states import student_states
+from db_operations.student_db_operations import get_assignments_by_topic, get_next_assignment
+from states.student_states import StudentActions
 
 router = Router()
 
-@router.callback_query(F.data == "getting_task")
-async def cmd_get_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@router.callback_query(F.data.startswith("assignments_"))
+async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """Отправляет первое задание ученику по выбранной теме."""
     user_id = callback.from_user.id
-    latest_assignment = get_latest_assignment_for_student(user_id)
-    if latest_assignment:
-        file_id = latest_assignment['file_id']
-        is_photo = latest_assignment.get('is_photo', False)
-        caption = text_messages.LATEST_ASSIGNMENT_PHOTO_CAPTION if is_photo else text_messages.LATEST_ASSIGNMENT_DOC_CAPTION
+    user_name = callback.from_user.full_name
+    topic_id = callback.data.split("_")[1]
 
-        try:
-            if is_photo:
-                await callback.bot.send_photo(chat_id=callback.from_user.id, photo=file_id, caption=caption)
-            else:
-                await callback.bot.send_document(chat_id=callback.from_user.id, document=file_id, caption=caption)
-        except TelegramAPIError as e:
-            await callback.bot.send_message(chat_id=callback.from_user.id, text=str(e))
+    assignments = get_assignments_by_topic(topic_id)
+    logger.info(f"Ученик {user_name} (ID: {user_id}) запросил первое задание по теме с ID: {topic_id}")
 
+    if assignments:
+        await state.update_data(
+            current_assignment_index=0,
+            total_assignments=len(assignments),
+            current_assignment_id=assignments[0]['_id']
+            )
+        await bot.send_photo(callback.from_user.id, assignments[0]['task_file'])
         await callback.message.answer(text_messages.ENTER_ANSWER)
-        await state.set_state(student_states.StudentActions.waiting_for_answer)
+        await state.set_state(StudentActions.waiting_for_answer)
     else:
-        await callback.message.answer(text_messages.NO_ASSIGNMENTS)
+        await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
 
+    await callback.answer()
+
+@router.callback_query(F.data == "next_assignment")
+async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """Отправляет следующее задание ученику после правильного ответа на предыдущее."""
+    user_id = callback.from_user.id
+    user_name = callback.from_user.full_name
+
+    data = await state.get_data()
+    current_assignment_id = data.get('current_assignment_id')
+
+    logger.info(f"Ученик {user_name} (ID: {user_id}) запросил следующее задание.")
+
+    if current_assignment_id:
+        next_assignment = get_next_assignment(current_assignment_id)
+
+        if next_assignment:
+            await bot.send_photo(callback.from_user.id, next_assignment['task_file'])
+            await state.update_data(current_assignment_id=next_assignment['_id'])
+            await callback.message.answer(text_messages.ENTER_ANSWER)
+            await state.set_state(StudentActions.waiting_for_answer)
+        else:
+            await callback.message.answer(text_messages.LAST_ASSIGNMENT)
+            await state.clear()
+    else:
+        await callback.message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
+
+    await callback.answer()
