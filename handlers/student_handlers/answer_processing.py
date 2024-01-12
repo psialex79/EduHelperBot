@@ -1,7 +1,7 @@
 """Модуль для обработки ответов учеников."""
 
 import logging
-from aiogram import Router, Bot
+from aiogram import Router, Bot, exceptions
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
@@ -41,7 +41,7 @@ async def send_homework_file(bot: Bot, user_id: int, homework_file_id: str):
     """Отправляет файл для самостоятельной работы, если он есть."""
     try:
         await bot.send_photo(user_id, homework_file_id)
-    except:
+    except exceptions.TelegramBadRequest:
         try:
             await bot.send_document(user_id, homework_file_id)
         except Exception as e:
