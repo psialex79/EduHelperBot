@@ -43,7 +43,7 @@ async def send_homework_file(bot: Bot, user_id: int, current_assignment_id: str)
     homework_file_id = get_homework_file_id_by_topic(topic_id)
 
     if homework_file_id:
-        if is_photo(homework_file_id):
+        if is_photo(homework_file_id):  
             await bot.send_photo(user_id, homework_file_id)
         else:
             await bot.send_document(user_id, homework_file_id)
