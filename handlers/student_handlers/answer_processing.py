@@ -37,18 +37,16 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
         logger.info(f"Ученик {user_name} (ID: {user_id}) ответил неправильно на задание.")
         await handle_incorrect_answer(message, state, data)
 
-async def send_homework_file(bot: Bot, user_id: int, current_assignment_id: str):
+async def send_homework_file(bot: Bot, user_id: int, homework_file_id: str):
     """Отправляет файл для самостоятельной работы, если он есть."""
-    topic_id = get_topic_id_by_assignment(current_assignment_id)
-    homework_file_id = get_homework_file_id_by_topic(topic_id)
-
-    if homework_file_id:
-        if is_photo(homework_file_id):  
-            await bot.send_photo(user_id, homework_file_id)
-        else:
+    try:
+        await bot.send_photo(user_id, homework_file_id)
+    except:
+        try:
             await bot.send_document(user_id, homework_file_id)
-    else:
-        await bot.send_message(user_id, text_messages.NO_HOMEWORK_FILE)
+        except Exception as e:
+            logger.error(f"Ошибка при отправке файла для самостоятельной работы: {e}")
+            await bot.send_message(user_id, text_messages.FILE_SENDING_ERROR)
 
 async def handle_correct_answer(message, state, bot, current_assignment_id, user_id):
     """Обрабатывает случай правильного ответа ученика."""
