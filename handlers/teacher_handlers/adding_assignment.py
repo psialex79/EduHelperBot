@@ -80,17 +80,25 @@ async def add_self_study_file_yes(callback: CallbackQuery, state: FSMContext, bo
 
 @router.message(AddSelfStudyStates.waiting_for_self_study_file)
 async def process_self_study_file(message: Message, state: FSMContext):
-    """Обрабатывает загрузку файла для самостоятельной работы."""
-    if message.content_type == ContentType.DOCUMENT:
-        file_id = message.document.file_id
+    """Обрабатывает загрузку файла для самостоятельной работы, который может быть любым типом, кроме текста."""
+    if message.content_type not in ['text', 'text_mention', 'text_link']:
+        if message.content_type == ContentType.DOCUMENT:
+            file_id = message.document.file_id
+        elif message.content_type == ContentType.PHOTO:
+            file_id = message.photo[-1].file_id
+        elif message.content_type in ['audio', 'voice', 'video', 'video_note', 'animation', 'sticker']:
+            file_id = message[message.content_type].file_id
+        else:
+            await message.answer(text_messages.UNSUPPORTED_FILE_TYPE)
+            return
         data = await state.get_data()
         topic_id = data.get('topic_id')
         homework = Homework(topic_id, file_id)
         save_homework_to_db(homework)
         await message.answer(text_messages.HOMEWORK_SAVED)
-        await state.clear()
     else:
         await message.answer(text_messages.SEND_DOCUMENT)
+
 
 @router.callback_query(F.data == "add_self_study_file_no")
 async def add_self_study_file_no(callback: CallbackQuery, state: FSMContext, bot: Bot):
