@@ -148,4 +148,5 @@ def get_homework_file_id_by_topic(topic_id):
         return None
 
     homework = db.homeworks.find_one({"topic_id": object_id})
-    return homework['homework_file'] if homework else None
+    return str(homework['homework_file']) if homework else None
+
