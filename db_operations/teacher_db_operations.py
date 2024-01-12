@@ -55,3 +55,12 @@ def save_assignment_to_db(new_assignment):
         "solution_file": new_assignment.solution_file
     }
     db.assignments.insert_one(assignment_dict)
+
+def save_homework_to_db(homework):
+    """Сохраняет домашнее задание в базу данных."""
+    db = get_db()
+    homework_dict = {
+        "topic_id": homework.topic_id,
+        "homework_file": homework.homework_file
+    }
+    db.homeworks.insert_one(homework_dict)

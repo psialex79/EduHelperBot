@@ -73,3 +73,16 @@ def get_finish_or_add_more_keyboard() -> InlineKeyboardMarkup:
         callback_data="add_more_tasks"
     ))
     return ikb.as_markup()
+
+def get_self_study_file_confirmation_keyboard() -> InlineKeyboardMarkup:
+    """Создает клавиатуру с выбором добавить или нет файл для самостоятельной работы"""
+    ikb = InlineKeyboardBuilder()
+    ikb.add(InlineKeyboardButton(
+        text="Да",
+        callback_data="add_self_study_file_yes"
+    ))
+    ikb.add(InlineKeyboardButton(
+        text="Нет",
+        callback_data="add_self_study_file_no"
+    ))
+    return ikb.as_markup()

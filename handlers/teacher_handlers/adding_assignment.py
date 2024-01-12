@@ -3,11 +3,11 @@
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, ContentType
 from aiogram.fsm.context import FSMContext
-from db_operations.teacher_db_operations import save_assignment_to_db
+from db_operations.teacher_db_operations import save_assignment_to_db, save_homework_to_db
 from db_operations.student_db_operations import get_sections_by_teacher
-from models import Assignment
-from states.teacher_states import AddTopicStates
-from keyboards.teacher_keyboard import get_section_inline_kb, get_finish_or_add_more_keyboard
+from models import Assignment, Homework
+from states.teacher_states import AddTopicStates, AddSelfStudyStates
+from keyboards.teacher_keyboard import get_section_inline_kb, get_finish_or_add_more_keyboard, get_self_study_file_confirmation_keyboard
 import text_messages
 
 router = Router()
@@ -61,15 +61,39 @@ async def process_task_solution(message: Message, state: FSMContext):
     else:
         await message.answer("Пожалуйста, отправьте файл с решением")
 
-@router.callback_query(F.data == "finish_adding")
-async def finish_adding(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    """Обрабатывает завершение добавления заданий."""
-    sections = get_sections_by_teacher(callback.from_user.id)
-    await state.clear()
-    await bot.send_message(callback.from_user.id, text_messages.CHOOSE_ACTION, reply_markup=get_section_inline_kb(sections))
-
 @router.callback_query(F.data == "add_more_tasks")
 async def add_more_tasks(callback: CallbackQuery, state: FSMContext, bot: Bot):
     """Обрабатывает добавление дополнительных заданий."""
     await state.set_state(AddTopicStates.waiting_for_task_file)
     await bot.send_message(callback.from_user.id, text="Загрузите файл с заданием")
+
+@router.callback_query(F.data == "finish_adding")
+async def finish_adding(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """Запрашивает у учителя добавление файла для самостоятельной работы."""
+    await callback.message.answer(text_messages.ASK_ADD_SELF_STUDY_FILE, reply_markup=get_self_study_file_confirmation_keyboard())
+
+@router.callback_query(F.data == "add_self_study_file_yes")
+async def add_self_study_file_yes(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """Обработка согласия на добавление файла."""
+    await state.set_state(AddSelfStudyStates.waiting_for_self_study_file)
+    await callback.message.answer(text_messages.ADD_SELF_STUDY_FILE)
+
+@router.message(AddSelfStudyStates.waiting_for_self_study_file)
+async def process_self_study_file(message: Message, state: FSMContext):
+    """Обрабатывает загрузку файла для самостоятельной работы."""
+    if message.content_type == ContentType.DOCUMENT:
+        file_id = message.document.file_id
+        data = await state.get_data()
+        topic_id = data.get('topic_id')
+        homework = Homework(topic_id, file_id)
+        save_homework_to_db(homework)
+        await message.answer(text_messages.HOMEWORK_SAVED)
+    else:
+        await message.answer(text_messages.SEND_DOCUMENT)
+
+@router.callback_query(F.data == "add_self_study_file_no")
+async def add_self_study_file_no(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    """Обработка отказа от добавления файла."""
+    sections = get_sections_by_teacher(callback.from_user.id)
+    await state.clear()
+    await bot.send_message(callback.from_user.id, text_messages.CHOOSE_ACTION, reply_markup=get_section_inline_kb(sections))

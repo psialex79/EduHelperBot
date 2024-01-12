@@ -28,3 +28,6 @@ class AddSectionStates(StatesGroup):
     """Состояния для добавления раздела."""
     waiting_for_title = State()
     waiting_for_description = State()
+
+class AddSelfStudyStates(StatesGroup):
+    waiting_for_self_study_file = State()
