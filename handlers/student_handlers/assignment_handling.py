@@ -19,23 +19,32 @@ async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot:
     user_id = callback.from_user.id
     user_name = callback.from_user.full_name
     topic_id = callback.data.split("_")[1]
-
     assignments = get_assignments_by_topic(topic_id)
     logger.info(f"Ученик {user_name} (ID: {user_id}) запросил первое задание по теме с ID: {topic_id}")
-
     if assignments:
+        first_assignment = assignments[0]
         await state.update_data(
             current_assignment_index=0,
             total_assignments=len(assignments),
-            current_assignment_id=assignments[0]['_id']
-            )
-        await bot.send_photo(callback.from_user.id, assignments[0]['task_file'])
+            current_assignment_id=first_assignment['_id']
+        )
+        if is_photo(first_assignment['task_file']):
+            await bot.send_photo(callback.from_user.id, first_assignment['task_file'])
+        else:
+            await bot.send_document(callback.from_user.id, first_assignment['task_file'])
+
         await callback.message.answer(text_messages.ENTER_ANSWER)
         await state.set_state(StudentActions.waiting_for_answer)
     else:
         await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
-
     await callback.answer()
+
+def is_photo(file_path):
+    """Определяет, является ли файл фотографией."""
+    photo_extensions = ['jpg', 'jpeg', 'png', 'bmp']
+    extension = file_path.split('.')[-1].lower()
+    return extension in photo_extensions
+
 
 @router.callback_query(F.data == "next_assignment")
 async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
