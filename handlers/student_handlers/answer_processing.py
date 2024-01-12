@@ -9,7 +9,7 @@ from db_operations.student_db_operations import get_right_answer_for_student, ge
 from states.student_states import StudentActions
 from keyboards.student_keyboard import get_hint_inline_kb, get_solution_inline_kb
 import text_messages
-from student_handlers.assignment_handling import is_photo
+from .assignment_handling import is_photo
 
 router = Router()
 
