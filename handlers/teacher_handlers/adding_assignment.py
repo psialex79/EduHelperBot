@@ -99,7 +99,6 @@ async def process_self_study_file(message: Message, state: FSMContext):
     else:
         await message.answer(text_messages.SEND_DOCUMENT)
 
-
 @router.callback_query(F.data == "add_self_study_file_no")
 async def add_self_study_file_no(callback: CallbackQuery, state: FSMContext, bot: Bot):
     """Обработка отказа от добавления файла."""

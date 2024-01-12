@@ -127,3 +127,25 @@ def get_topics_by_section_id(section_id):
 
     topics_cursor = db.topics.find({"section_id": oid})
     return list(topics_cursor)
+
+def get_topic_id_by_assignment(assignment_id):
+    """Получает ID темы по ID задания."""
+    db = get_db()
+    try:
+        object_id = bson.ObjectId(assignment_id)
+    except:
+        return None
+
+    assignment = db.assignments.find_one({"_id": object_id})
+    return assignment['topic_id'] if assignment else None
+
+def get_homework_file_id_by_topic(topic_id):
+    """Получает ID файла домашнего задания по ID темы."""
+    db = get_db()
+    try:
+        object_id = bson.ObjectId(topic_id)
+    except:
+        return None
+
+    homework = db.homeworks.find_one({"topic_id": object_id})
+    return homework['homework_file'] if homework else None

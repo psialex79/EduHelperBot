@@ -5,7 +5,7 @@ from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 import text_messages
-from db_operations.student_db_operations import get_assignments_by_topic, get_next_assignment
+from db_operations.student_db_operations import get_assignments_by_topic, get_next_assignment, get_topic_id_by_assignment, get_homework_file_id_by_topic
 from states.student_states import StudentActions
 
 router = Router()
@@ -42,15 +42,11 @@ async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: 
     """Отправляет следующее задание ученику после правильного ответа на предыдущее."""
     user_id = callback.from_user.id
     user_name = callback.from_user.full_name
-
     data = await state.get_data()
     current_assignment_id = data.get('current_assignment_id')
-
     logger.info(f"Ученик {user_name} (ID: {user_id}) запросил следующее задание.")
-
     if current_assignment_id:
         next_assignment = get_next_assignment(current_assignment_id)
-
         if next_assignment:
             await bot.send_photo(callback.from_user.id, next_assignment['task_file'])
             await state.update_data(current_assignment_id=next_assignment['_id'])
@@ -58,8 +54,13 @@ async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: 
             await state.set_state(StudentActions.waiting_for_answer)
         else:
             await callback.message.answer(text_messages.LAST_ASSIGNMENT)
+            topic_id = get_topic_id_by_assignment(current_assignment_id)
+            homework_file_id = get_homework_file_id_by_topic(topic_id)
+            if homework_file_id:
+                await bot.send_document(callback.from_user.id, homework_file_id)
+            else:
+                await bot.send_message(callback.from_user.id, text_messages.NO_HOMEWORK_FILE)
             await state.clear()
     else:
         await callback.message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-
     await callback.answer()
