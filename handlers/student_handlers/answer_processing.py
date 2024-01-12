@@ -5,7 +5,7 @@ from aiogram import Router, Bot
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from db_operations.student_db_operations import get_right_answer_for_student, get_next_assignment
+from db_operations.student_db_operations import get_right_answer_for_student, get_next_assignment, get_topic_id_by_assignment, get_homework_file_id_by_topic
 from states.student_states import StudentActions
 from keyboards.student_keyboard import get_hint_inline_kb, get_solution_inline_kb
 import text_messages
@@ -39,7 +39,6 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
 async def handle_correct_answer(message, state, bot, current_assignment_id, user_id):
     """Обрабатывает случай правильного ответа ученика."""
     await message.answer(text_messages.CORRECT_ANSWER)
-
     next_assignment = get_next_assignment(current_assignment_id)
     if next_assignment:
         await state.update_data(
@@ -52,6 +51,12 @@ async def handle_correct_answer(message, state, bot, current_assignment_id, user
         await state.set_state(StudentActions.waiting_for_answer)
     else:
         await message.answer(text_messages.LAST_ASSIGNMENT)
+        topic_id = get_topic_id_by_assignment(current_assignment_id)
+        homework_file_id = get_homework_file_id_by_topic(topic_id)
+        if homework_file_id:
+            await bot.send_document(user_id, homework_file_id)
+        else:
+            await bot.send_message(user_id, text_messages.NO_HOMEWORK_FILE)
         await state.clear()
 
 async def handle_incorrect_answer(message, state, data):
