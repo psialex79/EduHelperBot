@@ -89,9 +89,17 @@ def get_assignments_by_topic(topic_id):
     db = get_db()
     try:
         object_id = bson.ObjectId(topic_id)
-        logger.info("Запрос заданий по topic_id: %s", object_id)
     except:
         return []
+
+    # Получение названия темы
+    topic = db.topics.find_one({"_id": object_id})
+    if not topic:
+        logger.info("Тема с topic_id: %s не найдена", object_id)
+        return []
+    
+    topic_title = topic.get('title', 'Неизвестная тема')
+    logger.info("Запрос заданий по теме: %s", topic_title)
 
     assignments_cursor = db.assignments.find({"topic_id": object_id})
     assignments = list(assignments_cursor)
