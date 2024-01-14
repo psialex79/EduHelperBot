@@ -34,15 +34,16 @@ async def show_section_description(callback: CallbackQuery, bot: Bot):
 
     section = get_section_by_id(section_id)
 
-    logger.info(f"Пользователь {user_name} (ID: {user_id}) выбрал раздел с ID: {section_id}")
-
     if section:
+        logger.info(f"Пользователь {user_name} выбрал раздел: {section['title']}")
+
         topics = get_topics_by_section_id(section_id)
         message_text = f"Раздел: {section['title']}"
         keyboard = get_topics_inline_kb(topics)
         await bot.send_message(callback.from_user.id, message_text, reply_markup=keyboard)
     else:
         await bot.send_message(callback.from_user.id, text_messages.NO_SECTION_FOUND)
+        logger.info(f"Раздел с ID: {section_id} не найден")
     await callback.answer()
 
 @router.callback_query(F.data.startswith("materials_"))

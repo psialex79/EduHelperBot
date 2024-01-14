@@ -60,7 +60,7 @@ async def process_topic_title(message: Message, state: FSMContext):
     await state.update_data(title=message.text)
     user_name = message.from_user.full_name
     user_id = message.from_user.id
-    logger.info(f"Пользователь {user_name} (ID: {user_id}) добавляет тему {message.text}")
+    logger.info(f"Пользователь {user_name} добавляет тему {message.text}")
     await state.set_state(AddTopicStates.waiting_for_videolink)
     await message.answer(text_messages.INPUT_VIDEO_LINK)
 
@@ -74,10 +74,11 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
         teacher_id=topic_data["teacher_id"],
         videos=topic_data.get("videos", [])
     )
+    title = new_topic[title]
     topic_id = save_topic_to_db(new_topic)
     user_name = callback.from_user.full_name
     user_id = callback.from_user.id
-    logger.info(f"Пользователь {user_name} (ID: {user_id}) завершил добавление темы с ID: {topic_id}")
+    logger.info(f"Пользователь {user_name} завершил добавление темы: {title}")
     await state.update_data(topic_id=topic_id)
     if is_registered_teacher(user_id):
         await state.set_state(AddTopicStates.waiting_for_task_file)

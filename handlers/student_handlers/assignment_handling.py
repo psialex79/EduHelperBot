@@ -53,7 +53,7 @@ async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: 
     user_name = callback.from_user.full_name
     data = await state.get_data()
     current_assignment_id = data.get('current_assignment_id')
-    logger.info(f"Ученик {user_name} (ID: {user_id}) запросил следующее задание.")
+    logger.info(f"Ученик {user_name} запросил следующее задание.")
     if current_assignment_id:
         next_assignment = get_next_assignment(current_assignment_id)
         if next_assignment:

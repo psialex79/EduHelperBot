@@ -31,10 +31,10 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
         return
 
     if student_answer.lower() == right_answer.lower():
-        logger.info(f"Ученик {user_name} (ID: {user_id}) ответил правильно на задание.")
+        logger.info(f"Ученик {user_name} ответил правильно на задание.")
         await handle_correct_answer(message, state, bot, current_assignment_id, user_id)
     else:
-        logger.info(f"Ученик {user_name} (ID: {user_id}) ответил неправильно на задание.")
+        logger.info(f"Ученик {user_name} ответил неправильно на задание.")
         await handle_incorrect_answer(message, state, data)
 
 async def send_homework_file(bot: Bot, user_id: int, current_assignment_id: str):

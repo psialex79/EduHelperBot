@@ -19,7 +19,7 @@ async def cmd_add_student(callback: CallbackQuery, state: FSMContext):
     teacher_name = callback.from_user.full_name
     teacher_id = callback.from_user.id
 
-    logger.info(f"Преподаватель {teacher_name} (ID: {teacher_id}) начал процесс добавления ученика")
+    logger.info(f"Преподаватель {teacher_name} начал процесс добавления ученика")
 
     if is_registered_teacher(teacher_id):
         await callback.message.answer(text_messages.ENTER_STUDENT_ID)
@@ -43,7 +43,7 @@ async def process_student_id(message: Message, state: FSMContext):
     teacher_id = message.from_user.id
     teacher_name = message.from_user.full_name
 
-    logger.info(f"Преподаватель {teacher_name} (ID: {teacher_id}) ввел ID ученика: {student_id}")
+    logger.info(f"Преподаватель {teacher_name} ввел ID ученика: {student_id}")
 
     if is_in_waiting_list(student_id):
         remove_from_waiting_list(student_id)
