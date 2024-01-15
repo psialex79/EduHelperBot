@@ -16,49 +16,26 @@ logger = logging.getLogger(__name__)
 @router.callback_query(F.data.startswith("assignments_"))
 async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
     try:
-        logger.info(f"Обработка запроса на получение заданий")
+        user_id = callback.from_user.id
         topic_id = callback.data.split("_")[1]
-        logger.info(f"Извлечённый topic_id: {topic_id}")
-
         assignments = get_assignments_by_topic(topic_id)
         if assignments:
             first_assignment = assignments[0]
-            logger.info(f"Первое задание получено: {first_assignment}")
-
-            if is_photo(first_assignment['task_file']):
-                logger.info(f"Отправка фото: {first_assignment['task_file']}")
-                await bot.send_photo(callback.from_user.id, first_assignment['task_file'])
-            else:
-                logger.info(f"Отправка документа: {first_assignment['task_file']}")
-                await bot.send_document(callback.from_user.id, first_assignment['task_file'])
-
+            try:
+                logger.info(f"Попытка отправить файл как фото: {first_assignment['task_file']}")
+                await bot.send_photo(user_id, first_assignment['task_file'])
+            except Exception as e:
+                logger.info(f"Отправка файла как фото не удалась, попытка как документ: {first_assignment['task_file']}, ошибка: {e}")
+                await bot.send_document(user_id, first_assignment['task_file'])
             await callback.message.answer(text_messages.ENTER_ANSWER)
             await state.set_state(StudentActions.waiting_for_answer)
         else:
-            await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
-            logger.info("Задания не найдены")
+            await bot.send_message(user_id, text_messages.NO_ASSIGNMENTS)
 
     except Exception as e:
         logger.error(f"Произошла ошибка в send_first_assignment: {e}")
-        await callback.message.answer("Произошла ошибка, пожалуйста, попробуйте позже")
-
+        await bot.send_message(user_id, "Произошла ошибка, пожалуйста, попробуйте позже")
     await callback.answer()
-
-# def is_photo(file_path):
-#     """Определяет, является ли файл фотографией."""
-#     photo_extensions = ['jpg', 'jpeg', 'png', 'bmp']
-#     extension = file_path.split('.')[-1].lower()
-#     return extension in photo_extensions
-    
-from PIL import Image
-
-def is_photo(file_path):
-    """Определяет, является ли файл фотографией, пытаясь открыть его как изображение."""
-    try:
-        with Image.open(file_path) as img:
-            return True
-    except IOError:
-        return False
 
 @router.callback_query(F.data == "next_assignment")
 async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
