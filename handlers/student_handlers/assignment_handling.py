@@ -15,28 +15,33 @@ logger = logging.getLogger(__name__)
 
 @router.callback_query(F.data.startswith("assignments_"))
 async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    """Отправляет первое задание ученику по выбранной теме."""
-    user_id = callback.from_user.id
-    user_name = callback.from_user.full_name
-    topic_id = callback.data.split("_")[1]
-    assignments = get_assignments_by_topic(topic_id)
-    logger.info(f"Ученик {user_name} (ID: {user_id}) запросил первое задание по теме с ID: {topic_id}")
-    if assignments:
-        first_assignment = assignments[0]
-        await state.update_data(
-            current_assignment_index=0,
-            total_assignments=len(assignments),
-            current_assignment_id=first_assignment['_id']
-        )
-        if is_photo(first_assignment['task_file']):
-            await bot.send_photo(callback.from_user.id, first_assignment['task_file'])
-        else:
-            await bot.send_document(callback.from_user.id, first_assignment['task_file'])
+    try:
+        logger.info(f"Обработка запроса на получение заданий")
+        topic_id = callback.data.split("_")[1]
+        logger.info(f"Извлечённый topic_id: {topic_id}")
 
-        await callback.message.answer(text_messages.ENTER_ANSWER)
-        await state.set_state(StudentActions.waiting_for_answer)
-    else:
-        await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
+        assignments = get_assignments_by_topic(topic_id)
+        if assignments:
+            first_assignment = assignments[0]
+            logger.info(f"Первое задание получено: {first_assignment}")
+
+            if is_photo(first_assignment['task_file']):
+                logger.info(f"Отправка фото: {first_assignment['task_file']}")
+                await bot.send_photo(callback.from_user.id, first_assignment['task_file'])
+            else:
+                logger.info(f"Отправка документа: {first_assignment['task_file']}")
+                await bot.send_document(callback.from_user.id, first_assignment['task_file'])
+
+            await callback.message.answer(text_messages.ENTER_ANSWER)
+            await state.set_state(StudentActions.waiting_for_answer)
+        else:
+            await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
+            logger.info("Задания не найдены")
+
+    except Exception as e:
+        logger.error(f"Произошла ошибка в send_first_assignment: {e}")
+        await callback.message.answer("Произошла ошибка, пожалуйста, попробуйте позже")
+
     await callback.answer()
 
 # def is_photo(file_path):
