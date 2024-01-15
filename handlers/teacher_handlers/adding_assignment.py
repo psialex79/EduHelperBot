@@ -96,6 +96,7 @@ async def process_self_study_file(message: Message, state: FSMContext):
         homework = Homework(topic_id, file_id)
         save_homework_to_db(homework)
         await message.answer(text_messages.HOMEWORK_SAVED)
+        await state.clear()
     else:
         await message.answer(text_messages.SEND_DOCUMENT)
 
