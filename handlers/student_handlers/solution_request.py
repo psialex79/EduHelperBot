@@ -37,6 +37,5 @@ async def cmd_request_solution(callback: CallbackQuery, state: FSMContext):
     else:
         logger.warning("ID текущего задания не найден.")
         await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.ASSIGNMENT_NOT_FOUND)
-        await state.clear()
 
     await callback.answer()

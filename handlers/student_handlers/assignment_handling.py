@@ -59,8 +59,6 @@ async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: 
                 await bot.send_document(callback.from_user.id, homework_file_id)
             else:
                 await bot.send_message(callback.from_user.id, text_messages.NO_HOMEWORK_FILE)
-            await state.clear()
     else:
         await callback.message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-        await state.clear()
     await callback.answer()

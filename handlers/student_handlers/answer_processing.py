@@ -29,7 +29,6 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
         if current_assignment_id is None:
             logger.error("ID текущего задания не найден")
             await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-            await state.clear()
             return
 
         right_answer = get_right_answer_for_student(current_assignment_id)
@@ -37,7 +36,6 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
         if right_answer is None:
             logger.error(f"Задание с ID {current_assignment_id} не найдено")
             await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-            await state.clear()
             return
 
         if student_answer.lower() == right_answer.lower():
