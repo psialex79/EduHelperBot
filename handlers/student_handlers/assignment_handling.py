@@ -21,6 +21,8 @@ async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot:
         assignments = get_assignments_by_topic(topic_id)
         if assignments:
             first_assignment = assignments[0]
+            current_assignment_id = str(first_assignment['_id']) 
+            await state.update_data(current_assignment_id=current_assignment_id) 
             try:
                 logger.info(f"Попытка отправить файл как фото: {first_assignment['task_file']}")
                 await bot.send_photo(user_id, first_assignment['task_file'])
@@ -35,6 +37,7 @@ async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot:
     except Exception as e:
         logger.error(f"Произошла ошибка в send_first_assignment: {e}")
         await bot.send_message(user_id, "Произошла ошибка, пожалуйста, попробуйте позже")
+
     await callback.answer()
 
 @router.callback_query(F.data == "next_assignment")
