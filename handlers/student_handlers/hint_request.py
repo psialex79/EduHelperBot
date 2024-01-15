@@ -24,3 +24,4 @@ async def cmd_request_tip(callback: CallbackQuery, state: FSMContext):
             await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.NO_HINT_FOR_TASK)
     else:
         await callback.bot.send_message(chat_id=callback.from_user.id, text=text_messages.ASSIGNMENT_NOT_FOUND)
+        await state.clear()

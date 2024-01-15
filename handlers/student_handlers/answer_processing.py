@@ -27,6 +27,7 @@ async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
 
     if right_answer is None:
         await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
+        await state.clear()
         return
 
     if student_answer.lower() == right_answer.lower():

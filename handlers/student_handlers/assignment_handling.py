@@ -63,4 +63,5 @@ async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: 
             await state.clear()
     else:
         await callback.message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
+        await state.clear()
     await callback.answer()
