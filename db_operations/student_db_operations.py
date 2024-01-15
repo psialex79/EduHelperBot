@@ -16,9 +16,13 @@ def get_latest_assignment_for_student(assignment_id):
 
 def get_right_answer_for_student(assignment_id):
     """Получает правильный ответ для задания ученика по его ID."""
-
     db = get_db()
-    assignment = db.assignments.find_one({"_id": assignment_id})
+    try:
+        object_id = bson.ObjectId(assignment_id) 
+    except bson.errors.InvalidId:
+        return None
+
+    assignment = db.assignments.find_one({"_id": object_id})
     if assignment:
         return assignment.get('answer_text')
     return None
