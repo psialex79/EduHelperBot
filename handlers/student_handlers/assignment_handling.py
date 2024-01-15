@@ -39,12 +39,21 @@ async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot:
         await bot.send_message(callback.from_user.id, text_messages.NO_ASSIGNMENTS)
     await callback.answer()
 
-def is_photo(file_path):
-    """Определяет, является ли файл фотографией."""
-    photo_extensions = ['jpg', 'jpeg', 'png', 'bmp']
-    extension = file_path.split('.')[-1].lower()
-    return extension in photo_extensions
+# def is_photo(file_path):
+#     """Определяет, является ли файл фотографией."""
+#     photo_extensions = ['jpg', 'jpeg', 'png', 'bmp']
+#     extension = file_path.split('.')[-1].lower()
+#     return extension in photo_extensions
+    
+from PIL import Image
 
+def is_photo(file_path):
+    """Определяет, является ли файл фотографией, пытаясь открыть его как изображение."""
+    try:
+        with Image.open(file_path) as img:
+            return True
+    except IOError:
+        return False
 
 @router.callback_query(F.data == "next_assignment")
 async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
