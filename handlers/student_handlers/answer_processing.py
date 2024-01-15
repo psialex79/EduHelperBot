@@ -17,25 +17,38 @@ logger = logging.getLogger(__name__)
 
 @router.message(StudentActions.waiting_for_answer)
 async def process_input_answer(message: Message, state: FSMContext, bot: Bot):
-    """Обрабатывает ответ ученика на задание."""
-    student_answer = message.text
-    user_id = message.from_user.id
-    user_name = message.from_user.full_name
-    data = await state.get_data()
-    current_assignment_id = data.get('current_assignment_id')
-    right_answer = get_right_answer_for_student(current_assignment_id)
+    try:
+        student_answer = message.text
+        user_id = message.from_user.id
+        user_name = message.from_user.full_name
+        data = await state.get_data()
+        current_assignment_id = data.get('current_assignment_id')
 
-    if right_answer is None:
-        await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
-        await state.clear()
-        return
+        logger.info(f"Текущий ID задания: {current_assignment_id}")
 
-    if student_answer.lower() == right_answer.lower():
-        logger.info(f"Ученик {user_name} ответил правильно на задание.")
-        await handle_correct_answer(message, state, bot, current_assignment_id, user_id)
-    else:
-        logger.info(f"Ученик {user_name} ответил неправильно на задание.")
-        await handle_incorrect_answer(message, state, data)
+        if current_assignment_id is None:
+            logger.error("ID текущего задания не найден")
+            await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
+            await state.clear()
+            return
+
+        right_answer = get_right_answer_for_student(current_assignment_id)
+
+        if right_answer is None:
+            logger.error(f"Задание с ID {current_assignment_id} не найдено")
+            await message.answer(text_messages.ASSIGNMENT_NOT_FOUND)
+            await state.clear()
+            return
+
+        if student_answer.lower() == right_answer.lower():
+            logger.info(f"Ученик {user_name} ответил правильно на задание.")
+            await handle_correct_answer(message, state, bot, current_assignment_id, user_id)
+        else:
+            logger.info(f"Ученик {user_name} ответил неправильно на задание.")
+            await handle_incorrect_answer(message, state, data)
+    except Exception as e:
+        logger.error(f"Ошибка при обработке ответа ученика: {e}")
+        await message.answer("Произошла ошибка, пожалуйста, попробуйте позже")
 
 async def send_homework_file(bot: Bot, user_id: int, current_assignment_id: str):
     """Отправляет файл для самостоятельной работы, если он есть."""

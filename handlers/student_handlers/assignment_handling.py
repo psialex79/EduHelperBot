@@ -40,7 +40,6 @@ async def send_first_assignment(callback: CallbackQuery, state: FSMContext, bot:
 @router.callback_query(F.data == "next_assignment")
 async def send_next_assignment(callback: CallbackQuery, state: FSMContext, bot: Bot):
     """Отправляет следующее задание ученику после правильного ответа на предыдущее."""
-    user_id = callback.from_user.id
     user_name = callback.from_user.full_name
     data = await state.get_data()
     current_assignment_id = data.get('current_assignment_id')
