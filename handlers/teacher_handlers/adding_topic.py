@@ -66,25 +66,38 @@ async def process_topic_title(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "add_topic_task_file")
 async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMContext):
-    """Обрабатывает сохранение темы и переход к добавлению задачи."""
-    topic_data = await state.get_data()
-    new_topic = Topic(
-        section_id=topic_data["section_id"],
-        title=topic_data["title"],
-        teacher_id=topic_data["teacher_id"],
-        videos=topic_data.get("videos", [])
-    )
-    title = new_topic[title]
-    topic_id = save_topic_to_db(new_topic)
-    user_name = callback.from_user.full_name
-    user_id = callback.from_user.id
-    logger.info(f"Пользователь {user_name} завершил добавление темы: {title}")
-    await state.update_data(topic_id=topic_id)
-    if is_registered_teacher(user_id):
-        await state.set_state(AddTopicStates.waiting_for_task_file)
-        await bot.send_message(user_id, text=text_messages.TOPIC_ADDED)
-    else:
-        await bot.send_message(user_id, text=text_messages.COMMAND_FOR_TEACHERS_ONLY)
+    try:
+        logger.info("Начало обработки callback_query")
+        topic_data = await state.get_data()
+
+        new_topic = Topic(
+            section_id=topic_data["section_id"],
+            title=topic_data["title"],
+            teacher_id=topic_data["teacher_id"],
+            videos=topic_data.get("videos", [])
+        )
+        title = new_topic.title
+        topic_id = save_topic_to_db(new_topic)
+
+        user_name = callback.from_user.full_name
+        user_id = callback.from_user.id
+
+        logger.info(f"Тема '{title}' сохранена в БД с ID {topic_id}")
+        logger.info(f"Пользователь {user_name} завершил добавление темы: {title}")
+
+        await state.update_data(topic_id=topic_id)
+
+        if is_registered_teacher(user_id):
+            await state.set_state(AddTopicStates.waiting_for_task_file)
+            await bot.send_message(user_id, text=text_messages.TOPIC_ADDED)
+            logger.info("Перевод бота в состояние ожидания файла задания")
+        else:
+            await bot.send_message(user_id, text=text_messages.COMMAND_FOR_TEACHERS_ONLY)
+            logger.info("Команда доступна только для учителей")
+
+    except Exception as e:
+        logger.error(f"Произошла ошибка в cbk_add_topic_task_file: {e}")
+    logger.info("Конец обработки callback_query")
 
 @router.message(AddTopicStates.waiting_for_videolink)
 async def process_videolink(message: Message, state: FSMContext):
