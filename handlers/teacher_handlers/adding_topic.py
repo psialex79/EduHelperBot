@@ -70,6 +70,10 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
         logger.info("Начало обработки callback_query")
         topic_data = await state.get_data()
 
+        if "section_id" not in topic_data or "title" not in topic_data or "teacher_id" not in topic_data:
+            logger.error("Отсутствуют необходимые данные в состоянии: section_id, title или teacher_id")
+            return
+
         new_topic = Topic(
             section_id=topic_data["section_id"],
             title=topic_data["title"],
