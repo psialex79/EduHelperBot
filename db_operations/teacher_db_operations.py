@@ -28,7 +28,7 @@ def save_topic_to_db(new_topic):
     db = get_db()
     topic_dict = {
         "title": new_topic.title,
-        "section_id": ObjectId(new_topic.section_id),
+        "section_id": new_topic.section_id,
         "teacher_id": new_topic.teacher_id,
         "videos": new_topic.videos
     }
