@@ -10,7 +10,6 @@ from states.teacher_states import AddTopicStates, AddSectionStates
 import text_messages, logging
 from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb
 from models import Topic, Section
-from bson import ObjectId
 
 router = Router()
 
@@ -85,7 +84,7 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
             videos=topic_data.get("videos", [])
         )
         title = new_topic.title
-        topic_id = ObjectId(save_topic_to_db(new_topic))
+        topic_id = save_topic_to_db(new_topic)
 
         user_name = callback.from_user.full_name
         user_id = callback.from_user.id
