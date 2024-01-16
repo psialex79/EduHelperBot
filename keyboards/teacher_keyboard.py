@@ -30,9 +30,14 @@ def get_section_inline_kb(sections) -> InlineKeyboardMarkup:
     ))
     return ikb.as_markup()
 
-def get_topics_inline_kb() -> InlineKeyboardMarkup:
-    """Создает клавиатуру для добавления новой темы."""
+def get_topics_inline_kb(topics) -> InlineKeyboardMarkup:
+    """Создает клавиатуру со списком тем и опцией добавления новой темы."""
     ikb = InlineKeyboardBuilder()
+    for topic in topics:
+        ikb.row(InlineKeyboardButton(
+            text=topic['title'],
+            callback_data=f"topic_{topic['_id']}"
+        ))
     ikb.add(InlineKeyboardButton(
         text="Добавить тему",
         callback_data="adding_topic"

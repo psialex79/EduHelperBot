@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from db_operations.auth_db_operations import is_registered_teacher
 from db_operations.teacher_db_operations import save_topic_to_db, save_section_to_db
+from db_operations.student_db_operations import get_topics_by_section_id
 from states.teacher_states import AddTopicStates, AddSectionStates
 import text_messages, logging
 from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_inline_kb
@@ -35,9 +36,10 @@ async def process_section_title(message: Message, state: FSMContext):
         teacher_id=message.from_user.id
     )
     section_id = save_section_to_db(new_section)
-    logger.info(f"Пользователь {message.from_user.full_name} (ID: {message.from_user.id}) добавил новый раздел с ID: {section_id}")
-    await state.update_data(section_id=section_id) 
-    await message.answer(text_messages.ADD_TOPIC, reply_markup=get_topics_inline_kb())
+    topics = get_topics_by_section_id(section_id)
+    keyboard = get_topics_inline_kb(topics)
+    
+    await message.answer(text_messages.ADD_TOPIC, reply_markup=keyboard)
 
 @router.callback_query(F.data == "adding_topic")
 async def cbk_add_topic(callback: CallbackQuery, bot: Bot, state: FSMContext):
