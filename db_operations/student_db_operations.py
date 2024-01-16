@@ -162,3 +162,7 @@ def get_homework_file_id_by_topic(topic_id):
     homework = db.homeworks.find_one({"topic_id": object_id})
     return str(homework['homework_file']) if homework else None
 
+def is_student(user_id):
+    db = get_db()
+    student = db.students.find_one({"kid": user_id})
+    return student is not None

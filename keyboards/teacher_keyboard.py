@@ -30,7 +30,7 @@ def get_section_inline_kb(sections) -> InlineKeyboardMarkup:
     ))
     return ikb.as_markup()
 
-def get_topics_inline_kb(topics) -> InlineKeyboardMarkup:
+def get_topics_teacher_inline_kb(topics) -> InlineKeyboardMarkup:
     """Создает клавиатуру со списком тем и опцией добавления новой темы."""
     ikb = InlineKeyboardBuilder()
     for topic in topics:

@@ -3,8 +3,10 @@
 import logging, text_messages
 from aiogram import Router, Bot, F
 from aiogram.types import CallbackQuery
-from db_operations.student_db_operations import get_topic_by_id, get_section_by_id, get_topics_by_section_id
+from db_operations.student_db_operations import get_topic_by_id, get_section_by_id, get_topics_by_section_id, is_student
+from db_operations.teacher_db_operations import is_teacher
 from keyboards.student_keyboard import get_materials_inline_kb, get_next_video_inline_kb, get_topics_inline_kb
+from keyboards.teacher_keyboard import get_topics_teacher_inline_kb
 from bson import ObjectId 
 
 router = Router()
@@ -27,7 +29,6 @@ async def show_topic_description(callback: CallbackQuery, bot: Bot):
 
 @router.callback_query(F.data.startswith("section_"))
 async def show_section_description(callback: CallbackQuery, bot: Bot):
-    """Показывает название выбранного раздела и список тем в нем."""
     user_id = callback.from_user.id
     user_name = callback.from_user.full_name
     section_id = callback.data.split("_")[1]
@@ -36,10 +37,16 @@ async def show_section_description(callback: CallbackQuery, bot: Bot):
 
     if section:
         logger.info(f"Пользователь {user_name} выбрал раздел: {section['title']}")
-
         topics = get_topics_by_section_id(section_id)
         message_text = f"Раздел: {section['title']}"
-        keyboard = get_topics_inline_kb(topics)
+
+        if is_teacher(user_id):
+            keyboard = get_topics_teacher_inline_kb(topics)
+        elif is_student(user_id):
+            keyboard = get_topics_inline_kb(topics)
+        else:
+            keyboard = None  # Или какая-то другая логика для неопределенных пользователей
+
         await bot.send_message(callback.from_user.id, message_text, reply_markup=keyboard)
     else:
         await bot.send_message(callback.from_user.id, text_messages.NO_SECTION_FOUND)

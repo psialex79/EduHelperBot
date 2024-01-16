@@ -64,3 +64,8 @@ def save_homework_to_db(homework):
         "homework_file": homework.homework_file
     }
     db.homeworks.insert_one(homework_dict)
+
+def is_teacher(user_id):
+    db = get_db()
+    teacher = db.teachers.find_one({"teacher": user_id})
+    return teacher is not None

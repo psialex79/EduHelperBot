@@ -8,7 +8,7 @@ from db_operations.teacher_db_operations import save_topic_to_db, save_section_t
 from db_operations.student_db_operations import get_topics_by_section_id
 from states.teacher_states import AddTopicStates, AddSectionStates
 import text_messages, logging
-from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_inline_kb
+from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb
 from models import Topic, Section
 
 router = Router()
@@ -37,7 +37,7 @@ async def process_section_title(message: Message, state: FSMContext):
     )
     section_id = save_section_to_db(new_section)
     topics = get_topics_by_section_id(section_id)
-    keyboard = get_topics_inline_kb(topics)
+    keyboard = get_topics_teacher_inline_kb(topics)
     
     await message.answer(text_messages.ADD_TOPIC, reply_markup=keyboard)
 
