@@ -3,6 +3,7 @@
 import logging, text_messages
 from aiogram import Router, Bot, F
 from aiogram.types import CallbackQuery
+from aiogram.fsm.context import FSMContext
 from db_operations.student_db_operations import get_topic_by_id, get_section_by_id, get_topics_by_section_id, is_student
 from db_operations.teacher_db_operations import is_teacher
 from keyboards.student_keyboard import get_materials_inline_kb, get_next_video_inline_kb, get_topics_inline_kb
@@ -28,7 +29,7 @@ async def show_topic_description(callback: CallbackQuery, bot: Bot):
     await callback.answer()
 
 @router.callback_query(F.data.startswith("section_"))
-async def show_section_description(callback: CallbackQuery, bot: Bot):
+async def show_section_description(callback: CallbackQuery, bot: Bot, state: FSMContext):
     user_id = callback.from_user.id
     user_name = callback.from_user.full_name
     section_id = callback.data.split("_")[1]
@@ -37,6 +38,9 @@ async def show_section_description(callback: CallbackQuery, bot: Bot):
 
     if section:
         logger.info(f"Пользователь {user_name} выбрал раздел: {section['title']}")
+
+        await state.update_data(section_id=section_id)
+
         topics = get_topics_by_section_id(section_id)
         message_text = f"Раздел: {section['title']}"
 

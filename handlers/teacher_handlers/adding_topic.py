@@ -43,11 +43,12 @@ async def process_section_title(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "adding_topic")
 async def cbk_add_topic(callback: CallbackQuery, bot: Bot, state: FSMContext):
-    """Обрабатывает запрос на добавление темы."""
     user_id = callback.from_user.id
     if is_registered_teacher(user_id):
         section_data = await state.get_data()
-        if "section_id" in section_data:
+        section_id = section_data.get("section_id")
+
+        if section_id:
             await state.update_data(teacher_id=user_id)
             await state.set_state(AddTopicStates.waiting_for_title)
             await bot.send_message(user_id, text=text_messages.INPUT_TOPIC_NAME)
