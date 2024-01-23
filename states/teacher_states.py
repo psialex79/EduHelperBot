@@ -19,10 +19,12 @@ class AddTopicStates(StatesGroup):
     waiting_for_title = State()
     waiting_for_description = State()
     waiting_for_videolink = State()
+    waiting_for_testlink = State()
     waiting_for_task_file = State()
     waiting_for_task_hint = State()
     waiting_for_task_answer = State()
     waiting_for_task_solution = State()
+    waiting_for_test_link = State()
 
 class AddSectionStates(StatesGroup):
     """Состояния для добавления раздела."""

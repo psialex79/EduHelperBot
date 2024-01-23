@@ -67,10 +67,28 @@ async def process_topic_title(message: Message, state: FSMContext):
     await state.set_state(AddTopicStates.waiting_for_videolink)
     await message.answer(text_messages.INPUT_VIDEO_LINK)
 
+@router.message(AddTopicStates.waiting_for_videolink)
+async def process_videolink(message: Message, state: FSMContext):
+    videolink = message.text
+    current_data = await state.get_data()
+    videos = current_data.get('videos', [])
+    videos.append(videolink)
+    await state.update_data(videos=videos)
+    await message.answer(text_messages.ADD_ANOTHER_VIDEO, reply_markup=get_finish_adding_topic_kb())
+    await message.answer(text_messages.INPUT_TEST_LINK)
+    await state.set_state(AddTopicStates.waiting_for_test_link)
+
+@router.message(AddTopicStates.waiting_for_test_link)
+async def process_test_link(message: Message, state: FSMContext):
+    test_link = message.text
+    await state.update_data(test_link=test_link)
+    await message.answer(text_messages.TEST_LINK_ADDED)
+    await state.set_state(AddTopicStates.waiting_for_task_file)
+
 @router.callback_query(F.data == "add_topic_task_file")
 async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMContext):
     try:
-        logger.info("Начало обработки callback_query")
+        logger.info("Начало обработки файла с заданием")
         topic_data = await state.get_data()
 
         if "section_id" not in topic_data or "title" not in topic_data or "teacher_id" not in topic_data:
@@ -103,15 +121,5 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
             logger.info("Команда доступна только для учителей")
 
     except Exception as e:
-        logger.error(f"Произошла ошибка в cbk_add_topic_task_file: {e}")
-    logger.info("Конец обработки callback_query")
-
-@router.message(AddTopicStates.waiting_for_videolink)
-async def process_videolink(message: Message, state: FSMContext):
-    """Обрабатывает ввод ссылок на видео для темы."""
-    videolink = message.text
-    current_data = await state.get_data()
-    videos = current_data.get('videos', [])
-    videos.append(videolink)
-    await state.update_data(videos=videos)
-    await message.answer(text_messages.ADD_ANOTHER_VIDEO, reply_markup=get_finish_adding_topic_kb())
+        logger.error(f"Произошла ошибка при обработке файла с заданием: {e}")
+    logger.info("Конец обработки файла с заданием")

@@ -24,13 +24,13 @@ def get_students_of_teacher(teacher_id):
     return [student['kid'] for student in students]
 
 def save_topic_to_db(new_topic):
-    """Сохраняет тему в базу данных."""
     db = get_db()
     topic_dict = {
         "title": new_topic.title,
-        "section_id": ObjectId(new_topic.section_id),  # Преобразование в ObjectId
+        "section_id": ObjectId(new_topic.section_id),
         "teacher_id": new_topic.teacher_id,
-        "videos": new_topic.videos
+        "videos": new_topic.videos,
+        "test_link": new_topic.test_link  
     }
     result = db.topics.insert_one(topic_dict)
     return result.inserted_id

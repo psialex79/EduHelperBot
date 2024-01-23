@@ -24,12 +24,12 @@ class Section:
         self.teacher_id = teacher_id
 
 class Topic:
-    """Класс, представляющий тему учебного раздела."""
-    def __init__(self, section_id, title, teacher_id, videos=None, description=None):
+    def __init__(self, section_id, title, teacher_id, videos=None, description=None, test_link=None):
         self.title = title
         self.section_id = section_id
         self.teacher_id = teacher_id
         self.videos = videos if videos is not None else []
+        self.test_link = test_link 
 
 class Assignment:
     """Класс, представляющий задание для ученика."""
