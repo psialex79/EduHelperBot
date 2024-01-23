@@ -70,6 +70,15 @@ def get_finish_adding_topic_kb() -> InlineKeyboardMarkup:
     ))
     return ikb.as_markup()
 
+def get_finish_adding_test_kb() -> InlineKeyboardMarkup:
+    """Создает клавиатуру для завершения добавления видео и перехода к тесту."""
+    ikb = InlineKeyboardBuilder()
+    ikb.add(InlineKeyboardButton(
+        text="Перейти к добавлению задач",
+        callback_data="add_topic_task_file"
+    ))
+    return ikb.as_markup()
+
 def get_finish_or_add_more_keyboard() -> InlineKeyboardMarkup:
     """Создает клавиатуру для завершения добавления заданий или добавления еще одного задания."""
     ikb = InlineKeyboardBuilder()

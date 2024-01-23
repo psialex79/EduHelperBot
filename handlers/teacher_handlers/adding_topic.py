@@ -8,7 +8,7 @@ from db_operations.teacher_db_operations import save_topic_to_db, save_section_t
 from db_operations.student_db_operations import get_topics_by_section_id
 from states.teacher_states import AddTopicStates, AddSectionStates
 import text_messages, logging
-from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb
+from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb, get_finish_adding_test_kb
 from models import Topic, Section
 
 router = Router()
@@ -90,8 +90,7 @@ async def finish_adding_videos(callback: CallbackQuery, state: FSMContext):
 async def process_test_link(message: Message, state: FSMContext):
     test_link = message.text
     await state.update_data(test_link=test_link)
-    await message.answer(text_messages.TEST_LINK_ADDED)
-    await state.set_state(AddTopicStates.waiting_for_task_file)
+    await message.answer(text_messages.TEST_LINK_ADDED, reply_markup=get_finish_adding_test_kb())
 
 @router.callback_query(F.data == "add_topic_task_file")
 async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMContext):
