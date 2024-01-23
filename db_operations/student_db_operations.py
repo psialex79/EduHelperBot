@@ -166,3 +166,9 @@ def is_student(user_id):
     db = get_db()
     student = db.students.find_one({"kid": user_id})
     return student is not None
+
+def get_test_link_by_topic(topic_id):
+    """Получает ссылку на онлайн-тест для заданной темы."""
+    db = get_db()
+    topic = db.topics.find_one({"_id": topic_id})
+    return topic.get('test_link') if topic else None
