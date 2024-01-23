@@ -97,6 +97,7 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
     try:
         logger.info("Начало обработки файла с заданием")
         topic_data = await state.get_data()
+        logger.info(f"Данные темы перед сохранением: {topic_data}")
 
         if "section_id" not in topic_data or "title" not in topic_data or "teacher_id" not in topic_data:
             logger.error("Отсутствуют необходимые данные в состоянии: section_id, title или teacher_id")
