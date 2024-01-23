@@ -107,7 +107,8 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
             section_id=topic_data["section_id"],
             title=topic_data["title"],
             teacher_id=topic_data["teacher_id"],
-            videos=topic_data.get("videos", [])
+            videos=topic_data.get("videos", []),
+            test_link=topic_data.get("test_link")
         )
         title = new_topic.title
         topic_id = save_topic_to_db(new_topic)
