@@ -58,11 +58,15 @@ def get_studentslist_addstudent_inline_kb() -> InlineKeyboardMarkup:
     return ikb.as_markup()
 
 def get_finish_adding_topic_kb() -> InlineKeyboardMarkup:
-    """Создает клавиатуру для перехода к добавлению заданий к теме."""
+    """Создает клавиатуру для завершения добавления видео и перехода к тесту."""
     ikb = InlineKeyboardBuilder()
     ikb.add(InlineKeyboardButton(
-        text="Перейти к вводу заданий",
-        callback_data="add_topic_task_file"
+        text="Добавить еще видео",
+        callback_data="add_another_video"
+    ))
+    ikb.add(InlineKeyboardButton(
+        text="Завершить и добавить тест",
+        callback_data="finish_adding_videos"
     ))
     return ikb.as_markup()
 

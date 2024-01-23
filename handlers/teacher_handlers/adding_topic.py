@@ -75,7 +75,15 @@ async def process_videolink(message: Message, state: FSMContext):
     videos.append(videolink)
     await state.update_data(videos=videos)
     await message.answer(text_messages.ADD_ANOTHER_VIDEO, reply_markup=get_finish_adding_topic_kb())
-    await message.answer(text_messages.INPUT_TEST_LINK)
+
+@router.callback_query(F.data == "add_another_video")
+async def add_another_video(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(text_messages.INPUT_VIDEO_LINK)
+    await state.set_state(AddTopicStates.waiting_for_videolink)
+
+@router.callback_query(F.data == "finish_adding_videos")
+async def finish_adding_videos(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(text_messages.INPUT_TEST_LINK)
     await state.set_state(AddTopicStates.waiting_for_test_link)
 
 @router.message(AddTopicStates.waiting_for_test_link)
