@@ -110,6 +110,7 @@ async def cbk_add_topic_task_file(callback: CallbackQuery, bot: Bot, state: FSMC
             videos=topic_data.get("videos", []),
             test_link=topic_data.get("test_link")
         )
+        
         title = new_topic.title
         topic_id = save_topic_to_db(new_topic)
 

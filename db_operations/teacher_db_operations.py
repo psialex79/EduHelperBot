@@ -3,6 +3,10 @@
 from models import Assignment
 from bson import ObjectId
 from db_operations.db_connection import get_db
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def add_student(kid, comment, teacher_id):
     """Добавляет студента в базу данных."""
@@ -32,6 +36,7 @@ def save_topic_to_db(new_topic):
         "videos": new_topic.videos,
         "test_link": new_topic.test_link  
     }
+    logger.info(f"Сохраняемый в БД объект темы: {topic_dict}")
     result = db.topics.insert_one(topic_dict)
     return result.inserted_id
 
