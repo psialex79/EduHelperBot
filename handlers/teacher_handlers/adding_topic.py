@@ -5,10 +5,10 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from db_operations.auth_db_operations import is_registered_teacher
 from db_operations.teacher_db_operations import save_topic_to_db, save_section_to_db
-from db_operations.student_db_operations import get_topics_by_section_id
+from db_operations.student_db_operations import get_topics_by_section_id, get_sections_by_teacher
 from states.teacher_states import AddTopicStates, AddSectionStates
 import text_messages, logging
-from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb, get_finish_adding_test_kb
+from keyboards.teacher_keyboard import get_finish_adding_topic_kb, get_topics_teacher_inline_kb, get_finish_adding_test_kb, get_section_inline_kb
 from models import Topic, Section
 
 router = Router()
@@ -25,6 +25,21 @@ async def cmd_add_section(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer(text_messages.INPUT_SECTION_NAME)
     else:
         await callback.message.answer(text_messages.COMMAND_FOR_TEACHERS_ONLY)
+
+@router.message(AddSectionStates.waiting_for_title)
+async def process_section_title(message: Message, state: FSMContext):
+    """Обрабатывает ввод названия раздела и сохраняет раздел."""
+    await state.update_data(section_title=message.text)
+    section_data = await state.get_data()
+    new_section = Section(
+        title=section_data["section_title"],
+        teacher_id=message.from_user.id
+    )
+    section_id = save_section_to_db(new_section)
+    await state.clear()
+    sections = get_sections_by_teacher(message.from_user.id)
+    keyboard = get_section_inline_kb(sections)
+    await message.answer("Выберите раздел:", reply_markup=keyboard)
 
 @router.message(AddSectionStates.waiting_for_title)
 async def process_section_title(message: Message, state: FSMContext):
